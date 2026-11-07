@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10131c">
+  <meta name="description" content="معرض وسائط محلي ومتجاوب لتشغيل الموسيقى والفيديو وعرض الصور من جهازك.">
+  <title>مساحة الوسائط | معرض محلي</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Tahoma, Arial, sans-serif;
+      background: #10131c;
+      color: #f5f6fb;
+      --muted: #9da5ba;
+      --line: #292e3d;
+      --panel: #191d29;
+      --accent: #a78bfa;
+      --cyan: #67e8f9;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .page { width: min(1120px, 100% - 32px); margin: 0 auto; padding: 34px 0 56px; }
+    header { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 24px; }
+    .eyebrow { color: var(--cyan); font-size: .82rem; letter-spacing: .06em; }
+    h1 { margin: 7px 0 0; font-size: clamp(1.7rem, 5vw, 2.7rem); }
+    .lead { max-width: 580px; color: var(--muted); line-height: 1.8; margin: 10px 0 0; }
+
+    .section { margin-top: 20px; padding: clamp(17px, 3vw, 26px); border: 1px solid var(--line); border-radius: 20px; background: var(--panel); }
+    .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .section-heading h2 { margin: 0; font-size: 1.25rem; }
+    .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: .9rem; }
+    .tag { color: var(--cyan); font-size: .82rem; white-space: nowrap; }
+
+    .file-label, .action-button {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 42px; padding: 9px 14px; border: 1px solid #49425f; border-radius: 11px;
+      background: #28233a; color: #f5f0ff; font-weight: 700;
+    }
+    .file-label:hover, .action-button:hover { background: #352d4c; }
+    .file-label input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+    .file-label:focus-within, button:focus-visible, .image-card:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+    .action-button:disabled { opacity: .45; cursor: not-allowed; }
+
+    .music-player { display: grid; grid-template-columns: 90px minmax(0, 1fr); align-items: center; gap: 16px; padding: 16px; border-radius: 15px; background: #11151f; }
+    .music-art { display: grid; place-items: center; width: 90px; aspect-ratio: 1; border-radius: 13px; color: #161321; font-size: 2rem; background: linear-gradient(140deg, var(--accent), var(--cyan)); }
+    .music-meta { min-width: 0; }
+    .music-meta strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .music-meta span { display: block; margin-top: 5px; color: var(--muted); font-size: .87rem; }
+    audio { width: 100%; margin-top: 12px; }
+    .playlist { display: grid; gap: 8px; margin-top: 12px; }
+    .track { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 13px; border: 1px solid transparent; border-radius: 10px; text-align: right; color: #e9eaf2; background: #202432; }
+    .track:hover, .track[aria-current="true"] { border-color: #6754a0; background: #29253a; }
+    .track-number { color: var(--accent); font-variant-numeric: tabular-nums; }
+    .track-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .video-frame { overflow: hidden; border-radius: 15px; background: #080a0f; }
+    video { display: block; width: 100%; max-height: min(62vh, 620px); aspect-ratio: 16 / 9; background: #080a0f; }
+    .video-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .video-list .track { width: auto; max-width: 100%; }
+
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; }
+    .image-card { position: relative; overflow: hidden; padding: 0; border: 1px solid var(--line); border-radius: 12px; aspect-ratio: 4 / 3; background: #11151f; }
+    .image-card img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .2s ease; }
+    .image-card:hover img { transform: scale(1.04); }
+    .image-card span { position: absolute; inset: auto 0 0; padding: 22px 9px 9px; overflow: hidden; color: white; text-align: right; text-overflow: ellipsis; white-space: nowrap; background: linear-gradient(transparent, rgb(0 0 0 / 78%)); }
+
+    .empty { padding: 16px; border: 1px dashed #3b4152; border-radius: 12px; color: var(--muted); text-align: center; line-height: 1.7; }
+    .status { min-height: 1.4em; margin: 12px 0 0; color: var(--muted); font-size: .87rem; }
+    .privacy { margin-top: 20px; color: var(--muted); font-size: .85rem; line-height: 1.7; }
+
+    dialog { width: min(1000px, calc(100% - 24px)); max-width: none; max-height: 90vh; padding: 12px; border: 1px solid #464b5c; border-radius: 16px; color: white; background: #11131a; }
+    dialog::backdrop { background: rgb(0 0 0 / 82%); }
+    dialog img { display: block; max-width: 100%; max-height: 78vh; margin: auto; object-fit: contain; }
+    .dialog-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 3px 2px 10px; }
+    .dialog-bar p { margin: 0; overflow-wrap: anywhere; }
+
+    @media (max-width: 600px) {
+      .page { width: min(100% - 22px, 1120px); padding-top: 24px; }
+      header { align-items: start; flex-direction: column; }
+      .section-heading { align-items: start; flex-direction: column; }
+      .music-player { grid-template-columns: 62px minmax(0, 1fr); gap: 12px; padding: 12px; }
+      .music-art { width: 62px; font-size: 1.5rem; }
+      .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <span class="eyebrow">مكتبتك، بطريقتك</span>
+        <h1>مساحة الوسائط</h1>
+        <p class="lead">مشغّل محلي للموسيقى والفيديو ومعرض للصور، في صفحة واحدة تعمل على الهاتف والكمبيوتر.</p>
+      </div>
+      <span class="tag">بدون مكتبات خارجية</span>
+    </header>
+
+    <section class="section" aria-labelledby="music-title">
+      <div class="section-heading">
+        <div><h2 id="music-title">الموسيقى</h2><p>أضف ملفات صوتية واستمع إليها بالتتابع.</p></div>
+        <label class="file-label">＋ إضافة موسيقى<input id="audioFiles" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac" multiple></label>
+      </div>
+      <div id="musicContent" class="empty">اختر ملفات صوتية من جهازك لبدء التشغيل.</div>
+      <p id="audioStatus" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="section" aria-labelledby="video-title">
+      <div class="section-heading">
+        <div><h2 id="video-title">عرض الفيديو</h2><p>شغّل فيديوهاتك المحلية باستخدام مشغّل المتصفح.</p></div>
+        <label class="file-label">＋ إضافة فيديو<input id="videoFiles" type="file" accept="video/*,.mp4,.webm,.ogv,.mov,.m4v" multiple></label>
+      </div>
+      <div id="videoContent" class="empty">اختر ملف فيديو لعرضه هنا.</div>
+      <div id="videoList" class="video-list" aria-label="قائمة الفيديوهات"></div>
+      <p id="videoStatus" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="section" aria-labelledby="images-title">
+      <div class="section-heading">
+        <div><h2 id="images-title">معرض الصور</h2><p>اضغط على أي صورة لعرضها بحجم أكبر.</p></div>
+        <label class="file-label">＋ إضافة صور<input id="imageFiles" type="file" accept="image/*" multiple></label>
+      </div>
+      <div id="imageGallery" class="empty">اختر صورًا من جهازك لعرضها في المعرض.</div>
+      <p id="imageStatus" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <p class="privacy">تُقرأ الملفات محليًا داخل متصفحك ولا تُرفع إلى أي خادم. بعض الصيغ قد لا تعمل إذا لم يدعمها المتصفح أو الجهاز.</p>
+  </main>
+
+  <dialog id="imageDialog" aria-label="عرض الصورة">
+    <div class="dialog-bar"><p id="dialogCaption"></p><button id="closeDialog" class="action-button" type="button">إغلاق</button></div>
+    <img id="largeImage" alt="">
+  </dialog>
+
+  <script>
+    const audioInput = document.getElementById("audioFiles");
+    const videoInput = document.getElementById("videoFiles");
+    const imageInput = document.getElementById("imageFiles");
+    const musicContent = document.getElementById("musicContent");
+    const videoContent = document.getElementById("videoContent");
+    const videoList = document.getElementById("videoList");
+    const imageGallery = document.getElementById("imageGallery");
+    const audioStatus = document.getElementById("audioStatus");
+    const videoStatus = document.getElementById("videoStatus");
+    const imageStatus = document.getElementById("imageStatus");
+    const imageDialog = document.getElementById("imageDialog");
+    const largeImage = document.getElementById("largeImage");
+    const dialogCaption = document.getElementById("dialogCaption");
+
+    let tracks = [];
+    let trackIndex = -1;
+    let audioElement;
+    let videoItems = [];
+    let currentVideoUrl = "";
+    let imageUrls = [];
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} بايت`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} كيلوبايت`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} ميغابايت`;
+    }
+
+    function createEmpty(text) {
+      const element = document.createElement("div");
+      element.className = "empty";
+      element.textContent = text;
+      return element;
+    }
+
+    function playTrack(index) {
+      if (!tracks.length) return;
+      trackIndex = (index + tracks.length) % tracks.length;
+      const track = tracks[trackIndex];
+      audioElement.src = track.url;
+      document.getElementById("trackName").textContent = track.file.name;
+      document.getElementById("trackInfo").textContent = `${trackIndex + 1} من ${tracks.length} · ${formatBytes(track.file.size)}`;
+      document.querySelectorAll(".track[data-track-index]").forEach((button, i) => {
+        button.setAttribute("aria-current", String(i === trackIndex));
+      });
+      audioElement.play().catch(() => {
+        audioStatus.textContent = "اضغط زر التشغيل في المشغّل لبدء الاستماع.";
+      });
+    }
+
+    function renderTracks() {
+      musicContent.replaceChildren();
+      if (!tracks.length) {
+        musicContent.className = "empty";
+        musicContent.textContent = "اختر ملفات صوتية من جهازك لبدء التشغيل.";
+        audioElement = null;
+        return;
+      }
+      musicContent.className = "";
+      const player = document.createElement("div");
+      player.className = "music-player";
+      const artwork = document.createElement("div");
+      artwork.className = "music-art";
+      artwork.setAttribute("aria-hidden", "true");
+      artwork.textContent = "♫";
+      const meta = document.createElement("div");
+      meta.className = "music-meta";
+      const name = document.createElement("strong");
+      name.id = "trackName";
+      name.textContent = "اختر مقطعًا من القائمة";
+      const info = document.createElement("span");
+      info.id = "trackInfo";
+      info.textContent = `${tracks.length} مقطع صوتي`;
+      audioElement = document.createElement("audio");
+      audioElement.controls = true;
+      audioElement.preload = "metadata";
+      audioElement.setAttribute("aria-label", "مشغّل الموسيقى");
+      audioElement.addEventListener("ended", () => {
+        if (trackIndex < tracks.length - 1) playTrack(trackIndex + 1);
+      });
+      meta.append(name, info, audioElement);
+      player.append(artwork, meta);
+      const playlist = document.createElement("div");
+      playlist.className = "playlist";
+      tracks.forEach((track, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "track";
+        button.dataset.trackIndex = String(index);
+        button.setAttribute("aria-current", "false");
+        const number = document.createElement("span");
+        number.className = "track-number";
+        number.textContent = String(index + 1).padStart(2, "0");
+        const title = document.createElement("span");
+        title.className = "track-name";
+        title.textContent = track.file.name;
+        button.append(number, title);
+        button.addEventListener("click", () => playTrack(index));
+        playlist.appendChild(button);
+      });
+      musicContent.append(player, playlist);
+      if (trackIndex < 0) {
+        document.getElementById("trackName").textContent = tracks[0].file.name;
+        document.getElementById("trackInfo").textContent = `1 من ${tracks.length} · ${formatBytes(tracks[0].file.size)}`;
+        audioElement.src = tracks[0].url;
+        trackIndex = 0;
+        document.querySelector('.track[data-track-index="0"]').setAttribute("aria-current", "true");
+      }
+    }
+
+    audioInput.addEventListener("change", () => {
+      const files = Array.from(audioInput.files || []).filter(file => file.type.startsWith("audio/") || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(file.name));
+      files.forEach(file => tracks.push({ file, url: URL.createObjectURL(file) }));
+      renderTracks();
+      audioStatus.textContent = files.length ? `تمت إضافة ${files.length} ملفات صوتية.` : "لم يتم اختيار ملفات صوتية مدعومة.";
+      audioInput.value = "";
+    });
+
+    function selectVideo(index) {
+      const item = videoItems[index];
+      if (!item) return;
+      if (currentVideoUrl) URL.revokeObjectURL(currentVideoUrl);
+      currentVideoUrl = URL.createObjectURL(item.file);
+      videoContent.className = "video-frame";
+      videoContent.replaceChildren();
+      const video = document.createElement("video");
+      video.controls = true;
+      video.playsInline = true;
+      video.preload = "metadata";
+      video.src = currentVideoUrl;
+      video.setAttribute("aria-label", item.file.name);
+      videoContent.appendChild(video);
+      videoStatus.textContent = `الفيديو الحالي: ${item.file.name}`;
+      videoList.querySelectorAll("button").forEach((button, i) => button.setAttribute("aria-current", String(i === index)));
+    }
+
+    videoInput.addEventListener("change", () => {
+      const files = Array.from(videoInput.files || []).filter(file => file.type.startsWith("video/") || /\.(mp4|webm|ogv|mov|m4v)$/i.test(file.name));
+      files.forEach(file => videoItems.push({ file }));
+      videoList.replaceChildren();
+      videoItems.forEach((item, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "track";
+        button.textContent = `${index + 1}. ${item.file.name}`;
+        button.addEventListener("click", () => selectVideo(index));
+        videoList.appendChild(button);
+      });
+      if (files.length) selectVideo(videoItems.length - files.length);
+      else videoStatus.textContent = "لم يتم اختيار ملفات فيديو مدعومة.";
+      videoInput.value = "";
+    });
+
+    function showImage(url, name) {
+      largeImage.src = url;
+      largeImage.alt = name;
+      dialogCaption.textContent = name;
+      if (typeof imageDialog.showModal === "function") imageDialog.showModal();
+    }
+
+    imageInput.addEventListener("change", () => {
+      const files = Array.from(imageInput.files || []).filter(file => file.type.startsWith("image/"));
+      if (!imageUrls.length) imageGallery.className = "gallery";
+      files.forEach(file => {
+        const url = URL.createObjectURL(file);
+        imageUrls.push(url);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "image-card";
+        button.setAttribute("aria-label", `عرض الصورة ${file.name}`);
+        const image = document.createElement("img");
+        image.src = url;
+        image.alt = file.name;
+        image.loading = "lazy";
+        const caption = document.createElement("span");
+        caption.textContent = file.name;
+        button.append(image, caption);
+        button.addEventListener("click", () => showImage(url, file.name));
+        imageGallery.appendChild(button);
+      });
+      imageStatus.textContent = files.length ? `تمت إضافة ${files.length} صور.` : "لم يتم اختيار صور.";
+      imageInput.value = "";
+    });
+
+    document.getElementById("closeDialog").addEventListener("click", () => imageDialog.close());
+    imageDialog.addEventListener("click", event => {
+      if (event.target === imageDialog) imageDialog.close();
+    });
+    imageDialog.addEventListener("close", () => { largeImage.removeAttribute("src"); });
+
+    window.addEventListener("pagehide", () => {
+      tracks.forEach(track => URL.revokeObjectURL(track.url));
+      imageUrls.forEach(url => URL.revokeObjectURL(url));
+      if (currentVideoUrl) URL.revokeObjectURL(currentVideoUrl);
+    });
+  </script>
+</body>
+</html>
